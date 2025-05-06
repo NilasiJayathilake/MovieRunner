@@ -27,5 +27,5 @@ interface MovieActorsCrossRefDAO {
 
     // This Query is to retrieve the movieIds of the passed Actor
     @Query("SELECT movieId FROM MovieActorsCrossRef WHERE actorId== :id")
-    suspend fun getMovieIdsOfActors(id:Int): List<Long>
+    suspend fun getMovieIdsOfActor(id:Int): List<Long>
 }

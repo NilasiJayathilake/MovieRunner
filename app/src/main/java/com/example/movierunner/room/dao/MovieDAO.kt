@@ -27,6 +27,8 @@ interface MovieDAO {
     @Query("SELECT * From movie WHERE id = :movieId")
     fun getMovie(movieId: Int):Movie
 
-    @Query("SELECT * FROM movie WHERE id IN (:movieIds)")
-    suspend fun getAllMoviesOfActors(movieIds: List<Long>): List<Movie>
+    @Query("SELECT DISTINCT * FROM movie WHERE id IN (:movieIds)")
+    suspend fun getAllMoviesOfActor(movieIds: List<Long>): List<Movie>
+
+
 }

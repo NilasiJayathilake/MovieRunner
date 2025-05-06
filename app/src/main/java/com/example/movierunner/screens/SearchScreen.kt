@@ -1,6 +1,5 @@
 package com.example.movierunner.screens
 
-
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -11,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -20,22 +20,22 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
 import com.example.movierunner.room.dao.ActorDAO
 import com.example.movierunner.room.dao.MovieActorsCrossRefDAO
 import com.example.movierunner.room.dao.MovieDAO
 import com.example.movierunner.room.model.Actor
 import com.example.movierunner.room.model.Movie
 import com.example.movierunner.room.model.MovieActorsCrossRef
-import com.example.movierunner.ui.theme.MovieRunnerTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -46,57 +46,73 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 @Composable
-fun SearchScreen(modifier: Modifier = Modifier , movieDAO: MovieDAO ?=null, actorDAO: ActorDAO ?=null, crossRefDAO: MovieActorsCrossRefDAO?=null){
-    var searchQuery by remember { mutableStateOf(" ") }
-    var showCard by remember { mutableStateOf(false) }
-    var retrievedMovie by remember { mutableStateOf<MovieJSON?>(null) }
+fun SearchScreen(modifier: Modifier = Modifier , movieDAO: MovieDAO ?=null, actorDAO: ActorDAO ?=null, crossRefDAO: MovieActorsCrossRefDAO?=null, navController: NavController){
+    var searchQuery by rememberSaveable { mutableStateOf(" ") }
+    var showCard by rememberSaveable { mutableStateOf(false) }
+    val movieSaver = Saver<MovieJSON?, List<String>>(
+        save = { movie ->
+            if (movie == null) emptyList() else listOf(movie.title, movie.year, movie.rated, movie.released, movie.runtime, movie.genre, movie.director, movie.writer, movie.actors, movie.plot)
+        },
+        restore = { list ->
+            if (list.size == 10) {
+                MovieJSON(title = list[0], year = list[1], rated = list[2], released = list[3], runtime = list[4], genre = list[5], director = list[6], writer = list[7], actors = list[8], plot = list[9])
+            } else null
+        }
+    )
+    var retrievedMovie by rememberSaveable(stateSaver = movieSaver) {
+        mutableStateOf(null)
+    }
+
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    Column (
+    LazyColumn (
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .then(modifier),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement =  Arrangement.Center){
-        MovieSearchBar(searchQuery) {newQuery ->
-            searchQuery = newQuery}
-        Button(onClick = {
-            scope.launch {
-                val result = fetchMovie(searchQuery, context)
-                retrievedMovie = result
-                showCard = true
-         }
-        }) { Text("Retrieve Movie") }
-        if (showCard && retrievedMovie != null) {
-            MovieDetailCard(retrievedMovie!!)
+        item{
+            SearchBar(searchQuery = searchQuery,onQueryChange = { searchQuery = it }, label = "Search Movies")
+            Button(onClick = {
+                scope.launch {
+                    val result = fetchMovie(searchQuery, context)
+                    retrievedMovie = result
+                    showCard = true
+                }
+            }) { Text("Retrieve Movie") }
         }
-        if (movieDAO != null && actorDAO != null && crossRefDAO != null && retrievedMovie !=null) {
-            retrievedMovie?.let {
-                SaveMovieToDB(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    movieDAO = movieDAO,
-                    actorDAO = actorDAO,
-                    crossRefDAO = crossRefDAO,
-                    movieJSON = it
-                )
-            }
-        }else{
-            Button(
-                onClick = {
-                    Toast.makeText(
-                        context,
-                        "Please search for a movie to save to DB",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                },
-                modifier = Modifier.padding(vertical = 16.dp)
-            ) {
-                Text("Save Movie To Database")
+        item{
+            if (showCard && retrievedMovie != null) {
+                MovieDetailCard(retrievedMovie!!)
             }
         }
-
-
+        item{
+            if (movieDAO != null && actorDAO != null && crossRefDAO != null && retrievedMovie !=null) {
+                retrievedMovie?.let {
+                    SaveMovieToDB(
+                        modifier = Modifier.padding(vertical = 16.dp),
+                        movieDAO = movieDAO,
+                        actorDAO = actorDAO,
+                        crossRefDAO = crossRefDAO,
+                        movieJSON = it
+                    )
+                }
+            }else{
+                Button(
+                    onClick = {
+                        Toast.makeText(
+                            context,
+                            "Please search for a movie to save to DB",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    },
+                    modifier = Modifier.padding(vertical = 16.dp)
+                ) {
+                    Text("Save Movie To Database")
+                }
+            }
+        }
     }
 }
 suspend fun fetchMovie(keyword: String, context: Context): MovieJSON?{
@@ -148,14 +164,15 @@ fun parseMovieJSON(jsonString: StringBuilder): MovieJSON {
     )
 }
 @Composable
-fun MovieSearchBar(
+fun SearchBar(
     searchQuery: String,
-    onQueryChange: (String) -> Unit
+    onQueryChange: (String) -> Unit,
+    label: String
 ) {
     TextField(
         value = searchQuery,
         onValueChange = onQueryChange,
-        label = { Text("Search movie title") },
+        label = { Text(label) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
@@ -259,24 +276,12 @@ data class MovieJSON(
                      val writer: String,
                      val actors: String,
                      val plot: String)
-@Preview
-@Composable
-fun PreviewSearchScreen(modifier: Modifier = Modifier) {
-   MovieRunnerTheme(darkTheme = true) {
-       SearchScreen()
-   }
-
-
-}
-
-//data class MovieJSON(
-//    val Title: String,
-//    val Year: String,
-//    val Rated: String,
-//    val Released: String,
-//    val Runtime: String,
-//    val Genre: String,
-//    val Director: String,
-//    val Writer: String,
-//    val Actors: String,
-//    val Plot: String)
+//@Preview
+//@Composable
+//fun PreviewSearchScreen(modifier: Modifier = Modifier) {
+//   MovieRunnerTheme(darkTheme = true) {
+//       SearchScreen()
+//   }
+//
+//
+//}

@@ -21,10 +21,10 @@ interface ActorDAO {
     @Delete
     suspend fun delete(actor: Actor)
 
-    @Query("SELECT * FROM actor")
-    suspend fun getAlLMovies(): List<Actor>
+    @Query("SELECT name FROM actor WHERE :id")
+    suspend fun getActorName(id:Long): List<String>
 
     // Query to search for actors the Pattern will return any name with the entered sk in any part of the name
     @Query("SELECT id FROM actor WHERE name LIKE '%' || :pattern || '%'")
-    suspend fun search(pattern: String): List<Long>
+    suspend fun searchForActor(pattern: String): List<Long>
 }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -13,48 +14,55 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import com.example.movierunner.Screen
 import com.example.movierunner.room.dao.ActorDAO
 import com.example.movierunner.room.dao.MovieActorsCrossRefDAO
 import com.example.movierunner.room.dao.MovieDAO
 import com.example.movierunner.room.model.Actor
 import com.example.movierunner.room.model.Movie
 import com.example.movierunner.room.model.MovieActorsCrossRef
-import com.example.movierunner.ui.theme.MovieRunnerTheme
 import kotlinx.coroutines.launch
 
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier , movieDAO: MovieDAO ?=null, actorDAO: ActorDAO ?=null, crossRefDAO: MovieActorsCrossRefDAO?=null) {
-    Column (
-        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background) // <- important!
+fun HomeScreen(modifier: Modifier = Modifier , movieDAO: MovieDAO ?=null, actorDAO: ActorDAO ?=null, crossRefDAO: MovieActorsCrossRefDAO?=null, navController: NavController) {
+    LazyColumn (
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .then(modifier),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center){
-        if (movieDAO != null && actorDAO != null && crossRefDAO != null) {
-            AddMoviesToDB(movieDAO, actorDAO, crossRefDAO)
+        item{
+            if (movieDAO != null && actorDAO != null && crossRefDAO != null) {
+                AddMoviesToDB(movieDAO, actorDAO, crossRefDAO)
+            }
+
+            Button(onClick = {navController.navigate(Screen.Search.route)}) { Text("Search For Movies") }
         }
-
-        Button(onClick = {}) { Text("Search For Movies") }
-        Button(onClick = {}) { Text("Search For Actors") }
+        item{
+            Button(onClick = {navController.navigate(Screen.SearchActor.route) }) { Text("Search For Actors") }
+            Button(onClick = {navController.navigate(Screen.SearchWeb.route) }) { Text("Search Movies On Web") }
+        }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun DarkHomeScreenPreview() {
-    MovieRunnerTheme (darkTheme = true){
-        HomeScreen()
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun LightHomeScreenPreview() {
-    MovieRunnerTheme (darkTheme = false){
-        HomeScreen()
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun DarkHomeScreenPreview() {
+//    MovieRunnerTheme (darkTheme = true){
+//        HomeScreen()
+//    }
+//}
+//
+//@Preview(showBackground = true)
+//@Composable
+//private fun LightHomeScreenPreview() {
+//    MovieRunnerTheme (darkTheme = false){
+//        HomeScreen()
+//    }
+//}
 
 @Composable
 fun AddMoviesToDB(movieDAO: MovieDAO, actorDAO: ActorDAO, crossRefDAO: MovieActorsCrossRefDAO){
@@ -102,7 +110,8 @@ fun AddMoviesToDB(movieDAO: MovieDAO, actorDAO: ActorDAO, crossRefDAO: MovieActo
                 }
                 Toast.makeText(context,"Successfully Initialized Movie Data to Local Storage", Toast.LENGTH_LONG).show()
             }catch (e: Exception){
-                Toast.makeText(context,"Movie Initializing Data to Local Storage Unsuccessful", Toast.LENGTH_LONG).show()
+                Toast.makeText(context,"Movie Initializing Already Performed", Toast.LENGTH_LONG).show()
+                println("Initializing Failed Due To: $e")
             }
         }
         }
