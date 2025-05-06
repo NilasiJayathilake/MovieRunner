@@ -9,7 +9,7 @@ import com.example.movierunner.room.model.Actor
 import com.example.movierunner.room.model.Movie
 import com.example.movierunner.room.model.MovieActorsCrossRef
 
-@Database(entities = [Movie:: class, Actor:: class, MovieActorsCrossRef::class], version = 2)
+@Database(entities = [Movie:: class, Actor:: class, MovieActorsCrossRef::class], version = 6)
 abstract class AppDatabase : RoomDatabase(){
     abstract fun movieDao(): MovieDAO
     abstract fun actorDao(): ActorDAO

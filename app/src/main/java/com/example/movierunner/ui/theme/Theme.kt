@@ -26,15 +26,21 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFFD32F2F),      // Rich red
-    onPrimary = Color.White,          // White text on red
-    secondary = Color(0xFFB0BEC5),    // Soft gray-blue
+    primary = Color(0xFFB71C1C),          // Deep red (same as dark's container)
+    onPrimary = Color.White,             // White text on primary
+    primaryContainer = Color(0xFFFFCDD2), // Light red background for components
+    onPrimaryContainer = Color(0xFF4A0D0D), // Dark text on light red
+
+    secondary = Color(0xFFD32F2F),       // Slightly lighter red
     onSecondary = Color.White,
-    background = Color(0xFFDE5454),   // Light red background
-    onBackground = Color.Black,
-    surface = Color.White,            // Card/background surfaces
-    onSurface = Color.Black
+
+    background = Color(0xFFFFEBEE),      // Very light red/pink
+    onBackground = Color(0xFF1A1A1A),    // Very dark gray (softer than black)
+
+    surface = Color(0xFFFFFFFF),         // Pure white cards/sheets
+    onSurface = Color(0xFF212121)        // Standard dark text
 )
+
 
 @Composable
 fun MovieRunnerTheme(

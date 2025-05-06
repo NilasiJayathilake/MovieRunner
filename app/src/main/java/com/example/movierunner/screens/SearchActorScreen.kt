@@ -31,6 +31,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -51,13 +52,14 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun SearchActorScreen (modifier: Modifier = Modifier, movieDAO: MovieDAO?=null, actorDAO: ActorDAO?=null, crossRefDAO: MovieActorsCrossRefDAO?=null,
-                       navController: NavController){
+                       navController: NavController?){
     var searchActorQuery by rememberSaveable { mutableStateOf("") }
     var searchResults by rememberSaveable { mutableStateOf<List<Movie>>(emptyList()) }
     var matchedActors by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.background)
             .padding(16.dp)
             .then(modifier),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -67,6 +69,7 @@ fun SearchActorScreen (modifier: Modifier = Modifier, movieDAO: MovieDAO?=null, 
             Text(
                 "Search Movies by Actor",
                 style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
@@ -91,7 +94,7 @@ fun SearchActorScreen (modifier: Modifier = Modifier, movieDAO: MovieDAO?=null, 
             }
 
         item{
-            Text("Matched Actors:")
+            Text(text="Matched Actors:",  color =  MaterialTheme.colorScheme.secondary)
             Row(
                 modifier = Modifier
                     .horizontalScroll(rememberScrollState())
@@ -104,7 +107,8 @@ fun SearchActorScreen (modifier: Modifier = Modifier, movieDAO: MovieDAO?=null, 
                             .padding(end = 8.dp)
                             .background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(8.dp))
                             .padding(horizontal = 12.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+
                     )
                 }
             }
@@ -195,12 +199,12 @@ fun MovieListItem(movie: Movie) {
         }
     }
 }
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewSearchActor(modifier: Modifier = Modifier) {
-//    MovieRunnerTheme (darkTheme = true){
-//        SearchActorScreen()
-//    }
-//}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewSearchActor(modifier: Modifier = Modifier) {
+    MovieRunnerTheme (darkTheme = true){
+        SearchActorScreen(navController = null)
+    }
+}
 
